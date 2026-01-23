@@ -1,4 +1,13 @@
+fastmcp>=0.1.0
+fastapi>=0.110.0
+uvicorn>=0.29.0
+sse-starlette
 mcp
-fastmcp
-starlette
-uvicorn
+openai
+google-generativeai
+python-dotenv
+httpx
+pydantic
+mcp-inspector
+langchain-openai
+mcp-use
