@@ -1,0 +1,99 @@
+.env
+# dependencies
+/
+/node_modules
+/node_modules
+/.pnp
+/.pnp
+.pn
+.pnp.js
+.pnp.js
+
+# testing
+/
+/coverage
+
+# production
+# production
+/build
+/build
+/dist
+
+#
+# misc
+.DS
+.DS_Store
+.
+.env
+.env
+.env.local
+.env.local
+.env.
+.env.development.local
+.env.development.local
+.env.test
+.env.test.local
+.
+.env.production.
+.env.production.local
+
+#
+# logs
+# logs
+npm
+npm-debug.log
+npm-debug.log*
+yarn-
+yarn-debug.log*
+yarn-debug.log*
+yarn-error
+yarn-error.log*
+yarn-error.log*
+
+# IDE
+# IDE
+.idea
+.idea/
+.idea/
+.
+.vscode/
+.vscode/
+*.sw
+*.swp
+*.swp
+*.swo
+*.swo
+
+# Optional
+# Optional npm
+# Optional npm cache
+# Optional npm cache directory
+.npm
+.npm
+
+# Optional esl
+# Optional eslint cache
+.
+.eslintcache
+.eslintcache
+
+# Optional
+# Optional REPL history
+# Optional REPL history
+.node_re
+.node_repl_history
+.node_repl_history
+
+# Output
+# Output of 'npm
+# Output of 'npm pack'
+*.
+*.tgz
+*.tgz
+
+# Yarn
+# Yarn Integrity file
+.
+.yarn-integrity
+# dependencies
+#
