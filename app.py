@@ -25,8 +25,8 @@ app.add_middleware(
 
 
 # Configuration
-# MCP_SERVER_URL = "https://testingmcp-kulj.onrender.com/sse"
-MCP_SERVER_URL = "http://localhost:8001/mcp/sse" # Uncomment for local Docker
+MCP_SERVER_URL = "https://testingmcp-kulj.onrender.com/sse"
+# MCP_SERVER_URL = "http://localhost:8001/mcp/sse" # Uncomment for local Docker
 
 # System Instructions (Global Configuration)
 SYSTEM_INSTRUCTION = """
