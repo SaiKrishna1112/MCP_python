@@ -1,0 +1,30 @@
+C:\Users\saivi\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\langchain_core\_api\deprecation.py:26: UserWarning: Core Pydantic V1 functionality isn't compatible with Python 3.14 or greater.
+  from pydantic.v1.fields import FieldInfo as FieldInfoV1
+2026-02-02 17:53:08,947 - mcp_use.telemetry.telemetry - INFO - Anonymized telemetry enabled. Set MCP_USE_ANONYMIZED_TELEMETRY=false to disable.
+Signature:
+(self, llm: langchain_core.language_models.base.BaseLanguageModel | None = None, client: mcp_use.client.client.MCPClient | None = None, connectors: list[mcp_use.client.connectors.base.BaseConnector] | None = None, max_steps: int = 5, auto_initialize: bool = False, memory_enabled: bool = True, system_prompt: str | None = None, system_prompt_template: str | None = None, additional_instructions: str | None = None, disallowed_tools: list[str] | None = None, tools_used_names: list[str] | None = None, use_server_manager: bool = False, server_manager: mcp_use.agents.managers.base.BaseServerManager | None = None, verbose: bool = False, pretty_print: bool = False, agent_id: str | None = None, api_key: str | None = None, base_url: str = 'https://cloud.mcp-use.com', callbacks: list | None = None, chat_id: str | None = None, retry_on_error: bool = True)
+
+Docstring:
+Initialize a new MCPAgent instance.
+
+Args:
+    llm: The LangChain LLM to use. Not required if agent_id is provided for remote execution.
+    client: The MCPClient to use. If provided, connector is ignored.
+    connectors: A list of MCP connectors to use if client is not provided.
+    max_steps: The maximum number of steps to take.
+    auto_initialize: Whether to automatically initialize the agent when run is called.
+    memory_enabled: Whether to maintain conversation history for context.
+    system_prompt: Complete system prompt to use (overrides template if provided).
+    system_prompt_template: Template for system prompt with {tool_descriptions} placeholder.
+    additional_instructions: Extra instructions to append to the system prompt.
+    disallowed_tools: List of tool names that should not be available to the agent.
+    use_server_manager: Whether to use server manager mode instead of exposing all tools.
+    pretty_print: Whether to pretty print the output.
+    agent_id: Remote agent ID for remote execution. If provided, creates a remote agent.
+    api_key: API key for remote execution. If None, checks MCP_USE_API_KEY env var.
+    base_url: Base URL for remote API calls.
+    callbacks: List of LangChain callbacks to use. If None and Langfuse is configured, uses langfuse_handler.
+    retry_on_error: Whether to enable automatic error handling for tool calls. When True, tool errors
+        (including validation errors) are caught and returned as messages to the LLM, allowing it to
+        retry with corrected input. When False, errors will halt execution immediately. Default: True.
+
