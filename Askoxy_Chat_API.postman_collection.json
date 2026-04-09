@@ -1,0 +1,391 @@
+{
+  "info": {
+    "name": "Askoxy.AI Chat API",
+    "_postman_id": "askoxy-chat-collection-v1",
+    "description": "All test scenarios for the /chat endpoint and session management",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8090",
+      "type": "string"
+    },
+    {
+      "key": "session_id",
+      "value": "",
+      "type": "string",
+      "description": "Populated automatically by tests"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health & Sessions",
+      "item": [
+        {
+          "name": "List Active Sessions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sessions",
+              "host": ["{{base_url}}"],
+              "path": ["sessions"]
+            },
+            "description": "Returns all active session IDs and count."
+          }
+        },
+        {
+          "name": "Delete Session",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/session/{{session_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["session", "{{session_id}}"]
+            },
+            "description": "Clean up a session by ID. Replace {{session_id}} or set the variable."
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Guest / No Auth",
+      "item": [
+        {
+          "name": "Public Query - Trending Products",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.session_id) {",
+                  "    pm.collectionVariables.set('session_id', json.session_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Show me trending products\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat",
+              "host": ["{{base_url}}"],
+              "path": ["chat"]
+            },
+            "description": "No auth, no session. Agent should return public product list. session_id is auto-saved to collection variable."
+          }
+        },
+        {
+          "name": "Restricted Action Without Login (Expect Login Prompt)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Show my cart\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat",
+              "host": ["{{base_url}}"],
+              "path": ["chat"]
+            },
+            "description": "No auth. Agent should respond asking for mobile number to login."
+          }
+        },
+        {
+          "name": "Unrelated Query (Expect Rejection)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"What is the capital of France?\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat",
+              "host": ["{{base_url}}"],
+              "path": ["chat"]
+            },
+            "description": "Agent should reject non-Askoxy queries."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. OTP Login Flow",
+      "item": [
+        {
+          "name": "Step 1 - Send OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.session_id) {",
+                  "    pm.collectionVariables.set('session_id', json.session_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"My mobile number is 9999999999\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat",
+              "host": ["{{base_url}}"],
+              "path": ["chat"]
+            },
+            "description": "Agent detects mobile number and calls send_login_otp tool automatically."
+          }
+        },
+        {
+          "name": "Step 2 - Verify OTP (Continue Session)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"My OTP is 123456\",\n  \"session_id\": \"{{session_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat",
+              "host": ["{{base_url}}"],
+              "path": ["chat"]
+            },
+            "description": "Continue the same session. Agent calls verify_login_otp and logs user in."
+          }
+        },
+        {
+          "name": "Step 3 - Post Login Action (Continue Session)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Show my cart\",\n  \"session_id\": \"{{session_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat",
+              "host": ["{{base_url}}"],
+              "path": ["chat"]
+            },
+            "description": "After OTP login, agent should fetch cart without asking to login again."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Token + UserID Login (New Flow)",
+      "item": [
+        {
+          "name": "Chat with Token Auth - View Cart",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.session_id) {",
+                  "    pm.collectionVariables.set('session_id', json.session_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Show my cart\",\n  \"token\": \"<your_access_token_here>\",\n  \"user_id\": \"<your_user_id_here>\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat",
+              "host": ["{{base_url}}"],
+              "path": ["chat"]
+            },
+            "description": "Agent calls set_user_session first with token+user_id, then fetches cart. No OTP needed."
+          }
+        },
+        {
+          "name": "Chat with Token Auth - View Orders",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Show my recent orders\",\n  \"token\": \"<your_access_token_here>\",\n  \"user_id\": \"<your_user_id_here>\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat",
+              "host": ["{{base_url}}"],
+              "path": ["chat"]
+            },
+            "description": "Token auth flow for order history."
+          }
+        },
+        {
+          "name": "Chat with Token Auth - Continue Same Session",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Add 2kg rice to my cart\",\n  \"session_id\": \"{{session_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat",
+              "host": ["{{base_url}}"],
+              "path": ["chat"]
+            },
+            "description": "Reuse the session created by token auth. No need to pass token again."
+          }
+        },
+        {
+          "name": "Chat with Token Auth - Wrong/Expired Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Show my cart\",\n  \"token\": \"invalid_token_12345\",\n  \"user_id\": \"<your_user_id_here>\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat",
+              "host": ["{{base_url}}"],
+              "path": ["chat"]
+            },
+            "description": "Test behavior when an invalid or expired token is passed."
+          }
+        },
+        {
+          "name": "Chat with Token Auth - Missing user_id",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Show my cart\",\n  \"token\": \"<your_access_token_here>\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat",
+              "host": ["{{base_url}}"],
+              "path": ["chat"]
+            },
+            "description": "Only token provided, no user_id. Auth hint should NOT be injected. Agent should fall back to OTP login prompt."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Session Continuity",
+      "item": [
+        {
+          "name": "Reuse Existing Session",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"What products do you have?\",\n  \"session_id\": \"{{session_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat",
+              "host": ["{{base_url}}"],
+              "path": ["chat"]
+            },
+            "description": "Reuse a session from a previous request. Agent remembers conversation history."
+          }
+        },
+        {
+          "name": "New Session (No session_id)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Hello, what can you help me with?\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat",
+              "host": ["{{base_url}}"],
+              "path": ["chat"]
+            },
+            "description": "No session_id — server creates a new session and returns it."
+          }
+        },
+        {
+          "name": "Non-Existent Session ID",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Show my cart\",\n  \"session_id\": \"non-existent-session-abc\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat",
+              "host": ["{{base_url}}"],
+              "path": ["chat"]
+            },
+            "description": "Unknown session_id — server creates a fresh session under that ID."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Model Selection",
+      "item": [
+        {
+          "name": "Use gpt-4o (default)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Show trending products\",\n  \"model\": \"gpt-4o\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat",
+              "host": ["{{base_url}}"],
+              "path": ["chat"]
+            }
+          }
+        },
+        {
+          "name": "Use gpt-4o-mini",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Show trending products\",\n  \"model\": \"gpt-4o-mini\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat",
+              "host": ["{{base_url}}"],
+              "path": ["chat"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

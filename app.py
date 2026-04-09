@@ -74,6 +74,10 @@ MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "https://testingmcp-kulj.onrender.c
 # """
 
 SYSTEM_INSTRUCTION = """
+GREETING BEHAVIOR:
+- When a user says "hey Chatra" or greets Chatra, respond with:
+  "Hi sir/madam, I'm here to help you with the various types of products and services available on Askoxy.AI."
+
 SYSTEM INSTRUCTIONS:
 
 1. You are an AI assistant strictly for Askoxy.AI.
@@ -128,7 +132,9 @@ active_sessions: Dict[str, dict] = {}
 class ChatRequest(BaseModel):
     query: str
     session_id: Optional[str] = None # Helper for client tracking, but we rely on MCP session
-    model: str = "gpt-4o"
+    model: str = "gpt-5.4-mini"
+    token: Optional[str] = None      # Pre-authenticated token from frontend
+    user_id: Optional[str] = None    # User ID from frontend
 
 class ChatResponse(BaseModel):
     response: str
@@ -210,6 +216,16 @@ async def chat_endpoint(request: ChatRequest):
             full_query = f"{SYSTEM_INSTRUCTION}\n\nUser Query: {request.query}"
         else:
             full_query = request.query
+
+        # If token + user_id provided, prepend auth hint so agent calls set_user_session first
+        if request.token and request.user_id:
+            auth_hint = (
+                f"IMPORTANT: The user is already authenticated. "
+                f"Call the 'set_user_session' tool with user_id='{request.user_id}' "
+                f"and token='{request.token}' BEFORE doing anything else. "
+                f"Do not ask for mobile number or OTP.\n\n"
+            )
+            full_query = auth_hint + full_query
         
         # We pass recursion_limit config if supported, otherwise max_steps in init handles it usually
         result = await agent.run(full_query)
